@@ -1,10 +1,31 @@
 #!/bin/bash
 
-# Define your root directory
-BASE_PATH="$HOME/Desktop/Code/Learn/DSA/Online"   # My Directory Location to Execute
+# Enable strict error handling
+# -e: Exit immediately if a pipeline returns a non-zero status.
+# -u: Treat unset variables as an error.
+set -eu
 
-# Check if both folder and filename are provided
-if [ -z "$1" ] || [ -z "$2" ]; then
+# Define your root directory
+BASE_PATH="$HOME/Desktop/Code/Learn/DSA"
+
+# --- ERROR HANDLING: Check Dependencies ---
+check_dependency() {
+    if ! command -v "$1" &> /dev/null; then
+        echo "[-] CRITICAL: '$1' is not installed or not in PATH."
+        exit 1
+    fi
+}
+
+echo "[*] Verifying system dependencies..."
+check_dependency "g++"
+check_dependency "valgrind"
+check_dependency "code"
+check_dependency "vim"
+check_dependency "gnome-terminal"
+
+# --- ERROR HANDLING: Input Validation ---
+if [ "$#" -ne 2 ]; then
+    echo "[-] ERROR: Invalid arguments."
     echo "Usage: justCodeNow <folder_name> <file_name>"
     exit 1
 fi
@@ -13,64 +34,52 @@ FOLDER_NAME=$1
 FILE_NAME=$2
 FULL_PATH="$BASE_PATH/$FOLDER_NAME"
 
+# --- ERROR HANDLING: Base Path Validation ---
+if [ ! -d "$BASE_PATH" ]; then
+    echo "[-] ERROR: Base path $BASE_PATH does not exist. Please create it first."
+    exit 1
+fi
+
 # 1. Create the path if it doesn't exist and move into it
 mkdir -p "$FULL_PATH"
-cd "$FULL_PATH" || exit
+cd "$FULL_PATH" || { echo "[-] ERROR: Failed to enter directory $FULL_PATH"; exit 1; }
 
-# 2. Create the C++ file with High-Res Performance Tracking
+# Check if target C++ file already exists to prevent accidental wipe
+if [ -f "${FILE_NAME}.cpp" ]; then
+    echo "[-] WARNING: ${FILE_NAME}.cpp already exists! Aborting to prevent overwrite."
+    exit 1
+fi
+
+# 2. Create the Clean C++ file
 cat <<EOF > "${FILE_NAME}.cpp"
 #include <iostream>
 #include <chrono>
-#include <ctime>
-#include <vector>
 
-/**
- * PROJECT: $FOLDER_NAME
- * TARGET : ${FILE_NAME}.cpp
- * STATUS : Learning CPP / DSA
- * CREATED: $(date)
- * ---------------------------------------------------------
- * "Everything is a file. Everything is a vulnerability."
- * ---------------------------------------------------------
- */
+using namespace std;
+using namespace std::chrono;
 
 int main() {
-    // --- Metadata Header ---
-    auto system_now = std::chrono::system_clock::now();
-    std::time_t start_time_t = std::chrono::system_clock::to_time_t(system_now);
+    auto start = high_resolution_clock::now();
 
-    std::cout << "[+] System Check: OK" << std::endl;
-    std::cout << "[+] Session established at: " << std::ctime(&start_time_t);
-    std::cout << "[!] Initializing $FOLDER_NAME environment..." << std::endl;
-    std::cout << "---------------------------------------------------------" << std::endl;
+    // +++++++
+    // code
+    // +++++++
 
-    // --- Performance Benchmarking Start ---
-    auto start_bench = std::chrono::high_resolution_clock::now();
+    auto end = high_resolution_clock::now();
+    duration<double, milli> elapsed = end - start;
 
-    // ========================================================
-    // START CODING HERE
-    // ========================================================
+    cout << "\nExecution time: " << elapsed.count() << " ms\n";
+    cout << "Memory Leak: Run 'make profile' in terminal to verify\n";
 
-    std::cout << "[*] Running Algorithm..." << std::endl;
-
-    // ========================================================
-    // END CODING HERE
-    // ========================================================
-
-    // --- Performance Benchmarking End ---
-    auto end_bench = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end_bench - start_bench;
-
-    std::cout << "---------------------------------------------------------" << std::endl;
-    std::cout << "[✓] Execution Time: " << elapsed.count() << " ms" << std::endl;
-    
     return 0;
 }
 EOF
 
-# 3. Create notes.txt with Security Baseline
 FILE_HASH=$(sha256sum "${FILE_NAME}.cpp" | awk '{print $1}')
-cat <<EOF > notes.txt
+
+# 3. Create or Update notes.txt
+if [ ! -f "notes.txt" ]; then
+    cat <<EOF > notes.txt
 # Project Notes: $FOLDER_NAME
 # Created: $(date)
 
@@ -87,6 +96,11 @@ cat <<EOF > notes.txt
 - [ ] Memory Leak Check (make profile)
 - [ ] Complexity Analysis
 EOF
+    echo "[+] Created new notes.txt"
+else
+    echo "[*] notes.txt exists. Appending new file tracker."
+    echo "- Added ${FILE_NAME}.cpp | Hash: $FILE_HASH" >> notes.txt
+fi
 
 # 4. Create Advanced Dynamic Makefile with Valgrind Features
 cat <<EOF > Makefile
@@ -107,8 +121,6 @@ run: \$(TARGET)
 	./\$(TARGET)
 
 # ADVANCED: Valgrind Memory Profiling
-# leak-check: finds memory you forgot to free
-# track-origins: tells you where uninitialized values came from
 profile: \$(TARGET)
 	@echo "[!] Starting Valgrind Memory & Leak Analysis..."
 	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./\$(TARGET)
@@ -117,18 +129,35 @@ clean:
 	rm -f \$(PROGS)
 EOF
 
-# 5. Create .gitignore (To keep your DSA repo clean)
-cat <<EOF > .gitignore
-$FILE_NAME
+# 5. Create .gitignore (Only if missing)
+if [ ! -f ".gitignore" ]; then
+    cat <<EOF > .gitignore
 *.o
 vgcore.*
 .vscode/
+# Dynamic ignores for all compiled targets based on cpp files
 EOF
+    # Auto-ignore compiled binaries dynamically
+    for f in *.cpp; do
+        if [ -f "$f" ]; then
+            echo "${f%.cpp}" >> .gitignore
+        fi
+    done
+    echo "[+] Created new .gitignore"
+else
+    # Check if the new target is already ignored; if not, add it
+    if ! grep -q "^${FILE_NAME}$" .gitignore; then
+        echo "$FILE_NAME" >> .gitignore
+    fi
+    echo "[*] Updated existing .gitignore"
+fi
 
 # 6. Open the folder in VS Code
+echo "[+] Launching IDE..."
 code .
 
 # 7. Open a new terminal window with Vim running notes.txt
+echo "[+] Booting terminal session..."
 gnome-terminal --working-directory="$FULL_PATH" -- bash -c "vim notes.txt; exec bash"
 
-echo "🚀 DSA Workspace ready in $FULL_PATH"
+echo "[SUCCESS] DSA Workspace ready in $FULL_PATH"
