@@ -80,9 +80,10 @@ The generated Makefile serves as a comprehensive diagnostic tool:
 
 ---
 ### Documenting Your Progress
-The script automatically boots a new terminal window running your notes.txt file in Vim. This file is pre-populated with:
-Integrity Tracking: The initial SHA-256 hash of your target file.
-Complexity Metrics: Dedicated tracking for Time Complexity O() and Space Complexity O().
+- The script automatically boots a new terminal window running your notes.txt file in Vim. This file is pre-populated with:
+- `Integrity Tracking`: The initial `SHA-256 hash` of your target file.
+    - `SHA-256` it was not required but added a wax seal on a letter :)
+- `Complexity Metrics`: Dedicated tracking for Time Complexity O() and Space Complexity O().
 
 Actionable Checklist: Pre-set tasks for core implementation, memory leak verification, and performance optimization goals (< 10ms).
 ---
