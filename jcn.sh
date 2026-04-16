@@ -75,8 +75,6 @@ int main() {
 }
 EOF
 
-FILE_HASH=$(sha256sum "${FILE_NAME}.cpp" | awk '{print $1}')
-
 # 3. Create or Update notes.txt
 if [ ! -f "notes.txt" ]; then
     cat <<EOF > notes.txt
@@ -84,7 +82,7 @@ if [ ! -f "notes.txt" ]; then
 # Created: $(date)
 
 ## INTEGRITY & PERFORMANCE
-- Initial SHA-256: $FILE_HASH
+- Final Solution Hash: [Paste final hash from terminal here]
 - Optimization Goal: < 10ms
 
 ## DSA Observations:
@@ -99,7 +97,7 @@ EOF
     echo "[+] Created new notes.txt"
 else
     echo "[*] notes.txt exists. Appending new file tracker."
-    echo "- Added ${FILE_NAME}.cpp | Hash: $FILE_HASH" >> notes.txt
+    echo "- Added ${FILE_NAME}.cpp | Final Hash: [Pending]" >> notes.txt
 fi
 
 # 4. Create Advanced Dynamic Makefile with Valgrind Features
@@ -118,6 +116,11 @@ all: \$(PROGS)
 	\$(CXX) \$(CXXFLAGS) \$< -o \$@
 
 run: \$(TARGET)
+	@echo "---------------------------------------------------------"
+	@echo "[*] Modified CheckSum SHA256 On: \$$(date)"
+	@sha256sum \$(TARGET).cpp
+	@echo "[!] Reminder: Git is not initialized. Run \`git init .\` manually."
+	@echo "---------------------------------------------------------"
 	./\$(TARGET)
 
 # ADVANCED: Valgrind Memory Profiling
