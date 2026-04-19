@@ -119,7 +119,6 @@ run: \$(TARGET)
 	@echo "---------------------------------------------------------"
 	@echo "[*] Modified CheckSum SHA256 On: \$$(date)"
 	@sha256sum \$(TARGET).cpp
-	@echo "[!] Reminder: Git is not initialized. Run \`git init .\` manually."
 	@echo "---------------------------------------------------------"
 	./\$(TARGET)
 
@@ -138,7 +137,7 @@ if [ ! -f ".gitignore" ]; then
 *.o
 vgcore.*
 .vscode/
-# Dynamic ignores for all compiled targets based on cpp files
+
 EOF
     # Auto-ignore compiled binaries dynamically
     for f in *.cpp; do
@@ -155,11 +154,13 @@ else
     echo "[*] Updated existing .gitignore"
 fi
 
-# 6. Open the folder in VS Code
+echo "[!] Reminder: This is not initalized with git"
+
+
 echo "[+] Launching IDE..."
 code .
 
-# 7. Open a new terminal window with Vim running notes.txt
+# 8. Open a new terminal window with Vim running notes.txt
 echo "[+] Booting terminal session..."
 gnome-terminal --working-directory="$FULL_PATH" -- bash -c "vim notes.txt; exec bash"
 
